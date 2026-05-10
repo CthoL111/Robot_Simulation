@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Robot Navigation — DFA Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <span class="logo">&#x25A6; ROBOT NAV</span>
+      <span class="subtitle">Finite Automaton Simulator</span>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- LEFT PANEL -->
+    <section class="panel left-panel">
+
+      <div class="section-title">Commands</div>
+      <div class="cmd-grid">
+        <button class="cmd-btn cat-ctrl"  data-cmd="START">START</button>
+        <button class="cmd-btn cat-move"  data-cmd="MOVE_F">Move fwd</button>
+        <button class="cmd-btn cat-move"  data-cmd="MOVE_B">Move back</button>
+        <button class="cmd-btn cat-turn"  data-cmd="TURN_L">Turn L</button>
+        <button class="cmd-btn cat-turn"  data-cmd="TURN_R">Turn R</button>
+        <button class="cmd-btn cat-obj"   data-cmd="PICK">PICK</button>
+        <button class="cmd-btn cat-obj"   data-cmd="DROP">DROP</button>
+        <button class="cmd-btn cat-util"  data-cmd="RECHARGE">RECHARGE</button>
+        <button class="cmd-btn cat-ctrl"  data-cmd="STOP">STOP</button>
+      </div>
+
+      <div class="section-title" style="margin-top:16px">Sequence</div>
+      <div id="seq-display" class="seq-box">
+        <span class="placeholder">Press commands above…</span>
+      </div>
+
+      <div class="action-row">
+        <button class="action-btn" id="btn-undo">&#x21A9; Undo</button>
+        <button class="action-btn" id="btn-clear">&#x1F5D1; Clear</button>
+        <button class="action-btn accent" id="btn-demo">&#x25B6; Demo</button>
+      </div>
+
+      <!-- Status -->
+      <div id="status-box" class="status-box">
+        <div id="status-main" class="status-main">Ready</div>
+        <div id="status-detail" class="status-detail">Robot at (0,7) facing N. Object at (0,6).</div>
+      </div>
+
+      <!-- Stats grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">DFA State</div>
+          <div class="stat-val" id="st-dfa">S0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Energy</div>
+          <div class="stat-val" id="st-energy">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Consec. Turns</div>
+          <div class="stat-val" id="st-turns">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tasks Done</div>
+          <div class="stat-val" id="st-tasks">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Holding</div>
+          <div class="stat-val" id="st-hold">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">CW Loop</div>
+          <div class="stat-val" id="st-cw">—</div>
+        </div>
+      </div>
+
+      <!-- Rules -->
+      <div class="rules-box">
+        <div class="rules-title">Active Rules</div>
+        <ul class="rules-list">
+          <li><span class="rule-tag">R1</span> START first, STOP last</li>
+          <li><span class="rule-tag">R2</span> At least one MOVE before PICK</li>
+          <li><span class="rule-tag">R3</span> PICK before DROP, no double-PICK</li>
+          <li><span class="rule-tag r-new">R8★</span> Complete ≥ 2 pick-drop tasks</li>
+          <li><span class="rule-tag">R5</span> Max 2 consecutive turns</li>
+          <li><span class="rule-tag">R6</span> MOVE needs energy &gt; 0 (max 3)</li>
+          <li><span class="rule-tag r-new">R9★</span> RECHARGE only when energy = 0</li>
+          <li><span class="rule-tag r-new">R13★</span> No (MOVE_F → TURN_R) × 4</li>
+        </ul>
+      </div>
+
+    </section>
+
+    <!-- RIGHT PANEL -->
+    <section class="panel right-panel">
+
+      <div class="grid-header">
+        <div class="section-title">Grid</div>
+        <div class="grid-legend">
+          <span class="leg robot">&#x25A0; Robot</span>
+          <span class="leg object">&#x25A0; Object</span>
+        </div>
+      </div>
+
+      <div id="grid-wrap" class="grid-wrap"></div>
+
+      <div class="grid-meta">
+        <div class="meta-item">Direction: <span id="st-dir" class="meta-val">—</span></div>
+        <div class="meta-item">Position: <span id="st-pos" class="meta-val">—</span></div>
+        <div class="meta-item">Object at: <span id="st-obj" class="meta-val">—</span></div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
