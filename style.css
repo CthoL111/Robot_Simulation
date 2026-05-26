@@ -2,35 +2,37 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:          #0f1117;
-  --bg2:         #181b24;
-  --bg3:         #1f2330;
-  --border:      #2a2f3e;
-  --border2:     #353b4f;
-  --text:        #e8eaf0;
-  --text2:       #8b90a0;
-  --text3:       #555b6e;
+  --bg:        #f3f3f3;
+  --bg2:       #ffffff;
+  --bg3:       #ebebeb;
+  --border:    #e0e0e0;
+  --border2:   #d0d0d0;
+  --text:      #1a1a1a;
+  --text2:     #444444;
+  --text3:     #888888;
 
-  --blue:        #3b8ef3;
-  --blue-bg:     #1a2d4a;
-  --green:       #2ecc71;
-  --green-bg:    #0e2a1a;
-  --orange:      #f39c12;
-  --orange-bg:   #2a1e08;
-  --red:         #e74c3c;
-  --red-bg:      #2a0e0e;
-  --purple:      #9b59b6;
-  --purple-bg:   #1e0e2a;
-  --teal:        #1abc9c;
-  --teal-bg:     #0a2220;
-  --yellow:      #f1c40f;
-  --yellow-bg:   #2a2008;
+  --blue:      #0067c0;
+  --blue-bg:   #cce4f7;
+  --green:     #107c10;
+  --green-bg:  #dff6dd;
+  --orange:    #c44f1f;
+  --orange-bg: #fde7d9;
+  --red:       #c42b1c;
+  --red-bg:    #fde7e6;
+  --purple:    #7c3aed;
+  --purple-bg: #ede9fe;
+  --teal:      #0067c0;
+  --teal-bg:   #cce4f7;
+  --yellow:    #835b00;
+  --yellow-bg: #fff4ce;
 
-  --radius:      8px;
-  --radius-sm:   4px;
-  --radius-lg:   12px;
+  --r:   8px;
+  --rsm: 5px;
 
-  font-family: 'Courier New', Courier, monospace;
+  --sh:  0 2px 6px rgba(0,0,0,0.06);
+  --sh2: 0 4px 16px rgba(0,0,0,0.10);
+
+  font-family: 'Segoe UI Variable', 'IBM Plex Mono', monospace;
 }
 
 body {
