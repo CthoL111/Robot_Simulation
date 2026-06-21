@@ -1,14 +1,27 @@
-/* ══════════════════════════════════════════════════════════════
-   Robot Navigation — DFA Simulator
-   Rules: R1-R7 (base) + R8★ (≥2 tasks) + R9★ (RECHARGE@E=0)
-                        + R13★ (no CW loop ×4)
-   ══════════════════════════════════════════════════════════════ */
 
 const DIRS   = ['N', 'E', 'S', 'W'];
 const ARROWS = { N: '↑', E: '→', S: '↓', W: '←' };
 const DX     = { N: 0,  E: 1,  S: 0,  W: -1 };
-const DY     = { N: -1, E: 0,  S: 1,  W:  0 };
+const DY = { N: 1, E: 0, S: -1, W: 0 };
 
+/* ──────────────────────────────────────────────────────────────
+   initState()
+   Creates and returns a brand new starting state object for the robot.
+   Called once when the page loads, and again every time "Clear" is pressed.
+   Sets all values back to default:
+     - dfa = 'S0'        → robot hasn't started yet
+     - energy = 3        → full battery
+     - turns = 0         → no turns made
+     - holding = false   → not carrying anything
+     - tasks = 0         → no pick-drop tasks done
+     - rx,ry = (0,7)     → robot starts at bottom-left of grid
+     - dirIdx = 0        → facing North
+     - ox,oy = (0,6)     → object starts one cell above robot
+     - hasObj = true     → object exists on the grid
+     - cwCount = 0       → no clockwise loop progress
+     - lastWasMF = false → last command was not MOVE_F
+     - dead = false      → sequence not rejected yet
+   ────────────────────────────────────────────────────────────── */
 /* ── Initial state factory ──────────────────────────────────── */
 function initState() {
   return {
@@ -17,9 +30,9 @@ function initState() {
     turns:      0,
     holding:    false,
     tasks:      0,          // completed pick-drop pairs
-    rx: 0, ry: 7,          // robot position
+    rx: 0, ry: 0,          // robot position
     dirIdx: 0,             // facing North
-    ox: 0, oy: 6,          // object position
+    ox: 0, oy: 1,          // object position
     hasObj:     true,
     cwCount:    0,          // consecutive MF→TR pairs (rule 13)
     lastWasMF:  false,      // was last command MOVE_F?
@@ -28,7 +41,10 @@ function initState() {
   };
 }
 
-function clone(s) { return JSON.parse(JSON.stringify(s)); }
+function clone(s) {
+  const c = Object.assign({}, s);
+  return c;
+}
 
 /* ── DFA transition function ────────────────────────────────── */
 function applyCmd(s, cmd) {
@@ -88,14 +104,14 @@ function applyCmd(s, cmd) {
     return s;
   }
 
-  /* RECHARGE */
-  if (cmd === 'RECHARGE') {
-    if (s.energy > 0) {
-      s.dead = true; s.deadReason = `Can only RECHARGE when energy is exactly 0 — current energy: ${s.energy} (Rule 9★)`;
-      return s;
-    }
-    s.energy = 3; s.lastWasMF = false; return s;
+/* RECHARGE */
+if (cmd === 'RECHARGE') {
+  if (s.energy > 0) {
+    s.dead = true; s.deadReason = `Can only RECHARGE when energy is exactly 0 — current energy: ${s.energy} (Rule 9★)`;
+    return s;
   }
+  s.energy = 3; return s;
+}
 
   /* PICK */
   if (cmd === 'PICK') {
@@ -134,33 +150,33 @@ let state = initState();
 
 /* ── Grid renderer ──────────────────────────────────────────── */
 function buildGrid(s) {
-  const wrap = document.getElementById('grid-wrap');
-  wrap.innerHTML = '';
-  for (let row = 0; row < 8; row++) {
-    for (let col = 0; col < 8; col++) {
-      const cell = document.createElement('div');
-      const isR  = col === s.rx && row === s.ry;
-      const isO  = s.hasObj && col === s.ox && row === s.oy;
+    const wrap = document.getElementById('grid-wrap');
+    wrap.innerHTML = '';
+    for (let row = 7; row >= 0; row--) {
+        for (let col = 0; col < 8; col++) {
+            const cell = document.createElement('div');
+            const isR = col === s.rx && row === s.ry;
+            const isO = s.hasObj && col === s.ox && row === s.oy;
 
-      if (isR && isO) {
-        cell.className = 'cell is-both';
-        cell.textContent = ARROWS[DIRS[s.dirIdx]];
-        const dot = document.createElement('div');
-        dot.className = 'obj-dot';
-        cell.appendChild(dot);
-      } else if (isR) {
-        cell.className = 'cell is-robot';
-        cell.textContent = ARROWS[DIRS[s.dirIdx]];
-      } else if (isO) {
-        cell.className = 'cell is-obj';
-        cell.textContent = 'obj';
-      } else {
-        cell.className = 'cell';
-        cell.textContent = col + ',' + row;
-      }
-      wrap.appendChild(cell);
+            if (isR && isO) {
+                cell.className = 'cell is-both';
+                cell.textContent = ARROWS[DIRS[s.dirIdx]];
+                const dot = document.createElement('div');
+                dot.className = 'obj-dot';
+                cell.appendChild(dot);
+            } else if (isR) {
+                cell.className = 'cell is-robot';
+                cell.textContent = ARROWS[DIRS[s.dirIdx]];
+            } else if (isO) {
+                cell.className = 'cell is-obj';
+                cell.textContent = 'obj';
+            } else {
+                cell.className = 'cell';
+                cell.textContent = col + ',' + row;
+            }
+            wrap.appendChild(cell);
+        }
     }
-  }
 }
 
 /* ── UI updater ─────────────────────────────────────────────── */
@@ -194,15 +210,15 @@ function updateAll() {
   box.className = 'status-box';
   if (s.dead) {
     box.classList.add('err');
-    main.textContent   = 'Rejected ✗';
+    main.textContent   = 'Rejected ';
     detail.textContent = s.deadReason;
   } else if (s.dfa === 'ACCEPT') {
     box.classList.add('ok');
-    main.textContent   = 'Accepted ✓';
+    main.textContent   = 'Accepted ';
     detail.textContent = `Valid sequence — ${seq.length} commands, ${s.tasks} tasks completed.`;
   } else if (s.dfa === 'S0') {
     main.textContent   = 'Ready';
-    detail.textContent = 'Robot at (0,7) facing N ↑. Object at (0,6) — one step ahead.';
+    detail.textContent = 'Robot at (0,0) facing N ↑. Object at (0,1)';
   } else {
     box.classList.add('active');
     main.textContent = `Running · ${s.dfa}`;
@@ -261,36 +277,24 @@ let demoTimer = null;
 function runDemo() {
   clearAll();
   if (demoTimer) clearInterval(demoTimer);
-  const demo = [
-    'START',
-    'MOVE_F',              // → (0,6) reach obj, E=2
-    'PICK',                // hold obj, S3
-    'MOVE_F',              // → (0,5) E=1
-    'MOVE_F',              // → (0,4) E=0
-    'RECHARGE',            // E=0 → valid! E=3
-    'DROP',                // task 1 done, obj at (0,4), S4
-    'MOVE_F',              // → (0,3) E=2
-    'PICK',                // 2nd pick at (0,4)? need to go back
-    // the demo above would fail pick; let's use a correct path:
-  ];
 
   // Correct demo path:
-  const correctDemo = [
+const correctDemo = [
     'START',
-    'MOVE_F',           // (0,6) obj here E=2
-    'PICK',             // hold, S3
-    'MOVE_F',           // (0,5) E=1
-    'MOVE_F',           // (0,4) E=0
-    'RECHARGE',         // E=3  (R9★ valid: E was 0)
-    'DROP',             // obj at (0,4), tasks=1, S4
-    'MOVE_F',           // (0,3) E=2
-    'MOVE_B',           // (0,4) E=1, obj here
-    'PICK',             // hold again, S3
-    'MOVE_F',           // (0,3) E=0
-    'RECHARGE',         // E=3
-    'DROP',             // obj at (0,3), tasks=2, S5
-    'STOP'              // ACCEPT ✓
-  ];
+    'MOVE_F',           // (0,1) obj here, E=2
+    'PICK',              // hold, S3
+    'MOVE_F',            // (0,2) E=1
+    'MOVE_F',            // (0,3) E=0
+    'RECHARGE',          // E=3 (R9★ valid: E was 0)
+    'DROP',               // obj at (0,3), tasks=1, S4
+    'MOVE_F',             // (0,4) E=2
+    'MOVE_B',             // (0,3) E=1, obj here
+    'PICK',                // hold again, S3
+    'MOVE_F',              // (0,4) E=0
+    'RECHARGE',            // E=3
+    'DROP',                 // obj at (0,4), tasks=2, S5
+    'STOP'                  // ACCEPT ✓
+];
 
   let i = 0;
   demoTimer = setInterval(() => {
@@ -309,3 +313,4 @@ document.getElementById('btn-demo').addEventListener('click',  runDemo);
 
 /* ── Init ───────────────────────────────────────────────────── */
 updateAll();
+
